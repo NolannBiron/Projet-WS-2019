@@ -1,0 +1,22 @@
+doctype html
+html
+    head
+        include head.pug
+    body
+        header
+            include components/navbar.pug
+            div(class="row")
+                div(class="box col-4")
+                div(class="box col-4")
+                    div(class="wrapper")
+                        form(method='post' action='/{{model_name_minify}}s/'+{{model_name_minify}}.id+'?_method=PATCH')
+                            h4(class="champ") {{model_name}} n° #{ {{model_name_minify}}.id}
+                            div(class="champ")
+                                {{{inputsEdit}}}
+                            br
+                            div(class="btn-wrapper")
+                                button(class="btn success") Enregistrer les modifications
+                        form(method='post' action='/{{model_name_minify}}s/'+{{model_name_minify}}.id+'?_method=DELETE')
+                            div(class="btn-wrapper")
+                                button(class="btn danger") Supprimer
+                div(class="box col-4")

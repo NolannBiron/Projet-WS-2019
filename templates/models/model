@@ -1,0 +1,7 @@
+const Sequelize = require('sequelize');
+const db = require('../db.js')
+
+const {{model_name}} = db.define('{{model_name_minify}}', {
+    {{model_parameters}}
+});
+module.exports = {{model_name}}

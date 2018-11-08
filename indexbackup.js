@@ -1,0 +1,325 @@
+/** Importation de packages nécessaires */
+const express = require('express');
+const bodyParser = require("body-parser");
+const methodOverride = require("method-override");
+const path = require('path');
+const qs = require('querystring');
+const session = require('express-session');
+const fs = require('fs');
+const Handlebars = require('handlebars');
+
+/** Importation des models de Todo et User */
+
+
+/** Importation des controllers de Todo et User */
+
+
+const app = express();
+const PORT = process.env.PORT||8889;
+
+
+
+/** Configuration de l'application express */
+app.use(methodOverride('_method'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/static', express.static(__dirname + '/'));
+app.use(session({secret: 'secret'}));
+
+let sess; 
+
+app.get('/',function(req,res){
+    sess = req.session;
+    sess.name = "index";
+    console.log(sess)
+});
+
+
+
+app.get('/test', (req, res) => {
+    let returnMessage = ''
+    // chargement du json d'initialisation;
+    const init = fs.readFileSync('init.json', 'utf8');
+    const initJson = JSON.parse(init);
+    const initData = initJson.data;
+
+    let models_import =``;
+    let routing_import =``;
+    let controllers_import =``;
+    let port =``;
+    //boucle sur la data
+    for(const entry in initData) {
+        if(initData[entry].type == 'global'){
+            port = initData[entry].parameters.port;
+        }
+
+        else if(initData[entry].type == 'entity'){
+            // GET entity params
+            const entity_name = initData[entry].parameters.name;
+            const entity_name_minify = entity_name.toLowerCase();
+
+            //Generation des paramêtres MODEL
+            let params = ``;
+            
+              for(const param in initData[entry].parameters.structure) {
+                let type = initData[entry].parameters.structure[param];
+                let name = param;
+                params += `
+                ` + name + `: {
+                type: Sequelize.` + type.toUpperCase(); ;
+                if(name == 'id'){
+                  params += `,
+                primaryKey:true` ; 
+                }
+                params+= `
+                },
+                `;
+              }
+
+
+            //Génération du model.js
+            let source = fs.readFileSync('templates/models/model', 'utf8');
+            let template = Handlebars.compile(source);
+            let contents = template({model_name: entity_name, model_name_minify: entity_name_minify, model_parameters: params});
+
+            fs.writeFile('models/'+entity_name_minify+'.js', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Model crée avec succès\n'
+                console.log(entity_name_minify+'.js crée avec succès');
+            });
+
+
+            //Génération du controller.js
+            let jsonModel = ``;
+            for(const param in initData[entry].parameters.structure) {
+                let name = param;
+                jsonModel += ``+name+`: req.body.`+name+`,
+                `;       
+            }
+
+            source = fs.readFileSync('templates/controllers/controller', 'utf8');
+            template = Handlebars.compile(source);
+            contents = template({model_name: entity_name, model_name_minify: entity_name_minify, jsonModel: jsonModel, port: port});
+            
+            fs.writeFile('controllers/'+entity_name_minify+'.js', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Controller crée avec succès\n'
+                console.log(entity_name_minify+'.js crée avec succès');
+            });
+
+            //Génération du routing.js
+            source = fs.readFileSync('templates/routing/routing', 'utf8');
+            template = Handlebars.compile(source);
+            contents = template({model_name: entity_name, model_name_minify: entity_name_minify});
+            
+            fs.writeFile('routing/'+entity_name_minify+'.js', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Routing crée avec succès\n'
+                console.log(entity_name_minify+'.js crée avec succès');
+            });
+
+           
+
+            //Génération des views
+            fs.mkdirSync(path.join(__dirname, 'views/'+entity_name_minify+'s'))
+            fs.mkdirSync(path.join(__dirname, 'views/'+entity_name_minify+'s/components'))
+            fs.chmodSync(path.join(__dirname, 'views/'+entity_name_minify+'s'), 0777)
+            
+            source = fs.readFileSync('templates/views/components/navbar', 'utf8');
+            template = Handlebars.compile(source);
+            contents = template({model_name: entity_name, model_name_minify: entity_name_minify});
+            
+            fs.writeFile('views/'+entity_name_minify+'s/components/navbar.pug', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Routing crée avec succès\n'
+                console.log('navbar.pug crée avec succès');
+            });
+
+
+            // ADD 
+
+            let inputsAdd = '';
+            let y = 1;
+            
+
+                for(const param in initData[entry].parameters.structure) {
+                    if(y==1){
+                        let name = param;
+                        inputsAdd += `label `+name+` :
+                        input(type='text' id='`+name+`' name='`+name+`' style="margin-left: 5px")
+                        br
+                        `;    
+                    }else{
+                        let name = param;
+                        inputsAdd += `label `+name+` :
+                        input(type='text' id='`+name+`' name='`+name+`' style="margin-left: 5px")
+                        br
+                        `;    
+                    }
+                     y+=1; 
+                }
+
+            source = fs.readFileSync('templates/views/add', 'utf8');
+            template = Handlebars.compile(source);
+            contents = template({model_name: entity_name, model_name_minify: entity_name_minify, inputsAdd: inputsAdd});
+            
+            fs.writeFile('views/'+entity_name_minify+'s/add'+entity_name_minify+'.pug', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Routing crée avec succès\n'
+                console.log('nav.pug crée avec succès');
+            });
+            
+            let inputsEdit = '';
+            let z=1;
+            for(const param in initData[entry].parameters.structure) {
+                if(z==1){
+                    let name = param;
+                    inputsEdit += `label `+name+` :
+                                input(type='text' id='`+name+`' name='`+name+`' style="margin-left: 5px")
+                                br
+                    `;    
+                }else{
+                    let name = param;
+                    inputsEdit += `            label `+name+` :
+                                input(type='text' id='`+name+`' name='`+name+`' style="margin-left: 5px")
+                                br
+                    `;    
+                }
+                 z+=1; 
+            }
+            source = fs.readFileSync('templates/views/edit', 'utf8');
+            template = Handlebars.compile(source);
+            contents = template({model_name: entity_name, model_name_minify: entity_name_minify, inputsEdit: inputsEdit});
+            
+            fs.writeFile('views/'+entity_name_minify+'s/edit'+entity_name_minify+'.pug', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Routing crée avec succès\n'
+                console.log('nav.pug crée avec succès');
+            });
+
+            source = fs.readFileSync('templates/views/head', 'utf8');
+            template = Handlebars.compile(source);
+            contents = template({model_name: entity_name, model_name_minify: entity_name_minify});
+            
+            fs.writeFile('views/'+entity_name_minify+'s/head.pug', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Routing crée avec succès\n'
+                console.log('nav.pug crée avec succès');
+            });
+
+            source = fs.readFileSync('templates/views/id', 'utf8');
+            template = Handlebars.compile(source);
+            contents = template({model_name: entity_name, model_name_minify: entity_name_minify});
+            
+            fs.writeFile('views/'+entity_name_minify+'s/id'+entity_name_minify+'.pug', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Routing crée avec succès\n'
+                console.log('nav.pug crée avec succès');
+            });
+
+            
+            let indexThStructure = '';
+            let indexTdStructure = '';
+            let i = 1;
+            let lengthParams = Object.keys(initData[entry].parameters.structure).length
+
+                for(const param in initData[entry].parameters.structure) {
+                    if(i==1){
+                        let name = param;
+                        indexThStructure += `th ` + name +`
+                        `;
+                        indexTdStructure += `td(style="padding-top: 18px") #{ ` + entity_name_minify + `.` + name +`}`+`
+                        `;
+                    }else if (i==5){
+                        let name = param;
+                        indexThStructure += `    th ` + name;
+                        indexTdStructure += `        td(style="padding-top: 18px") #{ ` + entity_name_minify + `.` + name +`}`;
+                    }else{
+                        let name = param;
+                        indexThStructure += `    th ` + name +`
+                        `;
+                        indexTdStructure += `        td(style="padding-top: 18px") #{ ` + entity_name_minify + `.` + name +`}`+`
+                        `;
+                    }
+                    i += 1;
+                }
+                
+                source = fs.readFileSync('templates/views/index', 'utf8');
+                template = Handlebars.compile(source);
+                contents = template({model_name: entity_name, model_name_minify: entity_name_minify, indexThStructure: indexThStructure, indexTdStructure: indexTdStructure});
+    
+            fs.writeFile('views/'+entity_name_minify+'s/index.pug', contents, err => {
+                if (err) {
+                    return console.error(`Error! Failed to store template: ${err.message}.`);
+                }
+                returnMessage += 'Routing crée avec succès\n'
+                console.log('nav.pug crée avec succès');
+            });
+
+            models_import += 'const '+entity_name+' = require(\'./models/'+entity_name_minify+'.js\')\n';
+
+            controllers_import += `const `+entity_name_minify+`Controller = require('./controllers/`+entity_name_minify+`.js');
+            `;
+            
+            routing_import += `require('./routing/`+entity_name_minify+`.js')(app);`;
+
+             /*  const source = fs.readFileSync('templates/db_template', 'utf8');
+              const template = Handlebars.compile(source);
+              const contents = template({title: 'Wohooo!'});
+      
+              fs.writeFile('contents.js', contents, err => {
+                  if (err) {
+                      return console.error(`Error! Failed to store template: ${err.message}.`);
+                  }
+                  res.json({status:200,title:"File name",msg:"Generated with success !"});
+                  console.log('Saved template JS!');
+              }); */
+    
+        }
+    }
+
+    //Génération du index.js
+
+           
+    let source = fs.readFileSync('templates/index', 'utf8');
+    let template = Handlebars.compile(source);
+    let contents = template({models_import: models_import, controllers_import: controllers_import, port: port, routing_import: routing_import});
+    
+    fs.writeFile('index2.js', contents,{ encoding: 'utf8' }, err => {
+        if (err) {
+            return console.error(`Error! Failed to store template: ${err.message}.`);
+        }
+        returnMessage += 'Routing crée avec succès\n'
+        console.log('index.js crée avec succès');
+    });
+
+    res.json({status:200,title:"STATUS",msg:"ALL OK !"});
+    
+});
+
+/** Renvoie un JSON avec un status code 404 */
+app.use(function(req, res, next) {
+    res.status(404);
+    res.json({status:404,title:"Not Found",msg:"Route not found"});
+    next();
+});
+
+app.listen(PORT,() => {
+    console.log("Serveur sur port : " + PORT);
+});

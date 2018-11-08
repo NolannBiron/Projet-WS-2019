@@ -1,0 +1,26 @@
+doctype html
+html
+    include head.pug
+    body
+        header
+            include components/navbar.pug
+        div(class="row" style="margin-top: 5em;")
+            center
+                a(href="/{{model_name_minify}}s/add", class="btn success") Ajouter un(e) {{model_name}}
+            
+         
+        div(class="row" style="margin-top: 5em;")
+            div(class="box col-1")
+            div(class="box col-10")
+                table
+                    thead
+                        tr
+                            {{{indexThStructure}}}
+                    tbody
+                        each {{model_name_minify}} in {{model_name_minify}}s
+                            tr(style="cursor: pointer;" onclick="window.location='/{{model_name_minify}}s/"+{{model_name_minify}}.id+"/edit';")
+                                {{{indexTdStructure}}}
+                                td 
+                                    a(href='#', class="btn danger alert warn") Modifier
+            div(class="box col-1")
+                

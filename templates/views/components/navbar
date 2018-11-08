@@ -1,0 +1,3 @@
+nav(class="nav bar thick dark")
+               h4(class="titre")
+                a(href="/{{model_name_minify}}s/") {{model_name}} App

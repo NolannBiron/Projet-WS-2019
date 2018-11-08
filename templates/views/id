@@ -1,0 +1,20 @@
+doctype html
+html
+    include head.pug
+    body
+        header
+            include components/navbar.pug
+        div(class="row")
+            div(class="box col-4")
+            div(class="box col-4")
+                div(class="wrapper")
+                    h4(class="champ") {{model_name}} n° #{ {{model_name_minify}}.id}
+                    p(class="champ") #{ {{model_name_minify}}.message}
+                    p(class="champ") #{ {{model_name_minify}}.completion}
+                    p(class="champ") #{ {{model_name_minify}}.created}
+                    p(class="champ") #{ {{model_name_minify}}.updated}
+                    div(class="btn-wrapper")
+                        form(method='post' action='/{{model_name_minify}}s/'+{{model_name_minify}}.id+'?_method=DELETE')
+                            button(class="btn error") Supprimer
+                        a(class="btn warn" href='/{{model_name_minify}}s/'+{{model_name_minify}}.id+'/edit') Modifier
+            div(class="box col-4")

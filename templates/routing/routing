@@ -1,0 +1,47 @@
+module.exports = function(app){
+
+    const {{model_name_minify}}Controller = require('../controllers/{{model_name_minify}}.js');
+  
+  
+
+    /** Renvoie la liste des Todos. */
+    app.get('/{{model_name_minify}}s', (req,res) => {
+        {{model_name_minify}}Controller.index(req,res);
+    });
+
+    /** Renvoie le formulaire d'ajout de Todo. */
+    app.get('/{{model_name_minify}}s/add', (req,res) => {
+        {{model_name_minify}}Controller.getAdd{{model_name}}Page(req,res);
+    });
+
+    /** Ajout d'un todo en récupérant les infos du formulaire. */
+    app.post('/{{model_name_minify}}s', (req,res) => {
+        {{model_name_minify}}Controller.post{{model_name}}(req,res);
+    });
+
+    /** Renvoie les infos d'un Todo en fonction de l'id passé en paramètre. */
+    app.get('/{{model_name_minify}}s/:{{model_name_minify}}Id', (req,res) => {
+        let header = req["headers"]["content-type"];
+        if(header == "application/json") {        
+            {{model_name_minify}}Controller.getId{{model_name}}Json(req,res);
+        }
+        else {
+            {{model_name_minify}}Controller.getId{{model_name}}Page(req,res);
+        }
+    });
+
+    /** DELETE Route pour supprimer un Todo */
+    app.delete('/{{model_name_minify}}s/:{{model_name_minify}}Id',(req,res) => {
+        {{model_name_minify}}Controller.delete{{model_name}}(req,res);
+    });
+
+    /** Renvoie la page de modification d'un Todo */
+    app.get('/{{model_name_minify}}s/:{{model_name_minify}}Id/edit', (req,res) => {
+        {{model_name_minify}}Controller.getPatch{{model_name}}Page(req,res);
+    });
+
+    /** PATCH Route pour modifier un Todo */
+    app.patch('/{{model_name_minify}}s/:{{model_name_minify}}Id', (req,res) => {
+        {{model_name_minify}}Controller.patch{{model_name}}(req,res);
+    });
+}

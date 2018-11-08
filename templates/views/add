@@ -1,0 +1,14 @@
+doctype html
+html
+    include head.pug
+    body
+        header
+            include components/navbar.pug
+        center
+            div(class="row" style="margin-top: 5em;")
+                h3 Ajouter un(e) {{model_name}}
+                form(method='POST' action='/{{model_name_minify}}s')
+                    div
+                        {{{inputsAdd}}}
+                    button(type='submit' class="btn success alert success") Envoyer
+                a(href='/{{model_name_minify}}s', class="btn danger alert warn") Annuler

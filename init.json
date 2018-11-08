@@ -1,0 +1,49 @@
+{
+    "data": {
+        "entry1": {
+            "type": "global",
+            "parameters":{
+                "port":"8889"
+            }
+        },
+        "entry2": {
+            "type":"entity",
+            "parameters":{
+                "name":"user",
+                "structure" : {
+                    "id":"integer",
+                    "firstname":"string",
+                    "lastname":"string",
+                    "age":"integer"
+                },
+                "views":"true",
+                "rooting":"true" 
+            }
+        },
+        "entry3": {
+            "type":"entity",
+            "parameters":{
+                "name":"sport",
+                "structure" : {
+                    "id":"integer",
+                    "name":"string",
+                    "difficulty":"integer"
+                },
+                "views":"true",
+                "rooting":"true" 
+            }
+        },
+        "entry4": {
+            "type":"entity",
+            "parameters":{
+                "name":"competition",
+                "structure" : {
+                    "id":"integer",
+                    "date":"string"
+                },
+                "views":"true",
+                "rooting":"true" 
+            }
+        }
+    }
+  }
